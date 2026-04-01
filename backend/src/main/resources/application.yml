@@ -1,0 +1,45 @@
+spring:
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=BenNgheBook;encrypt=false;trustServerCertificate=true
+    username: sa
+    password: YourPassword123!
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+  jpa:
+    hibernate:
+      ddl-auto: none          # schema managed by init.sql
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServerDialect
+        format_sql: true
+    open-in-view: false
+
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: "bGVuZ3RoLW11c3QtYmUtYXQtbGVhc3QtMjU2LWJpdHMtZm9yLUhTMjU2LWFsZ29yaXRobS1rZXk="
+    expiration-ms: 86400000   # 24 hours
+
+  cors:
+    allowed-origins: "http://localhost:5173,http://localhost:3000"
+
+  init:
+    admin-password: "Admin@123"
+    manager-password: "Manager@123"
+    staff-password: "Staff@123"
+
+  upload:
+    cover-image-dir: "./uploads/covers"
+
+logging:
+  level:
+    com.bennghe: DEBUG
+    org.springframework.security: WARN
