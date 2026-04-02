@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserRepository userRepository;
-
+    
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -44,5 +44,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .credentialsExpired(false)
                 .disabled(!user.getIsActive())
                 .build();
+    }
+
+    public UserRepository getUserRepository() {
+        return userRepository;
     }
 }

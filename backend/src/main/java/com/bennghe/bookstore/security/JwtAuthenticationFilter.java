@@ -53,4 +53,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         return null;
     }
+
+    public UserDetailsService getUserDetailsService() {
+        return userDetailsService;
+    }
 }

@@ -1,6 +1,8 @@
 package com.bennghe.bookstore.repository;
 
 import com.bennghe.bookstore.entity.SalesRecord;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,36 +24,36 @@ public interface SalesRecordRepository extends JpaRepository<SalesRecord, Intege
             @Param("from") LocalDate from,
             @Param("to") LocalDate to);
 
-    @Query(value = """
-        SELECT TOP :topN sr.book_id, b.sku, b.title, SUM(sr.quantity_sold) AS total_sold
-        FROM sales_records sr
-        JOIN books b ON b.id = sr.book_id
-        WHERE (:fromDate IS NULL OR sr.sale_date >= :fromDate)
-          AND (:toDate   IS NULL OR sr.sale_date <= :toDate)
-        GROUP BY sr.book_id, b.sku, b.title
-        ORDER BY total_sold DESC
-        """, nativeQuery = true)
-    List<Object[]> getTopSellingBooks(
-            @Param("topN") int topN,
+    @Query("""
+        SELECT sr.book.id, sr.book.sku, sr.book.title, SUM(sr.quantitySold) AS totalSold
+        FROM SalesRecord sr
+        WHERE (:fromDate IS NULL OR sr.saleDate >= :fromDate)
+          AND (:toDate IS NULL OR sr.saleDate <= :toDate)
+        GROUP BY sr.book.id, sr.book.sku, sr.book.title
+        ORDER BY totalSold DESC
+        """)
+    Page<Object[]> getTopSellingBooks(
             @Param("fromDate") LocalDate fromDate,
-            @Param("toDate") LocalDate toDate);
+            @Param("toDate") LocalDate toDate,
+            Pageable pageable);
 
-    @Query(value = """
-        SELECT SUM(quantity_sold) FROM sales_records
-        WHERE (:fromDate IS NULL OR sale_date >= :fromDate)
-          AND (:toDate   IS NULL OR sale_date <= :toDate)
-        """, nativeQuery = true)
+    @Query("""
+        SELECT COALESCE(SUM(sr.quantitySold), 0)
+        FROM SalesRecord sr
+        WHERE (:fromDate IS NULL OR sr.saleDate >= :fromDate)
+          AND (:toDate IS NULL OR sr.saleDate <= :toDate)
+        """)
     Integer getTotalSold(
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate);
 
-    @Query(value = """
-        SELECT CAST(sale_date AS DATE) AS day, SUM(quantity_sold) AS qty
-        FROM sales_records
-        WHERE sale_date BETWEEN :fromDate AND :toDate
-        GROUP BY CAST(sale_date AS DATE)
-        ORDER BY day
-        """, nativeQuery = true)
+    @Query("""
+        SELECT CAST(sr.saleDate AS LocalDate), SUM(sr.quantitySold)
+        FROM SalesRecord sr
+        WHERE sr.saleDate BETWEEN :fromDate AND :toDate
+        GROUP BY CAST(sr.saleDate AS LocalDate)
+        ORDER BY CAST(sr.saleDate AS LocalDate)
+        """)
     List<Object[]> getDailySales(
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate);
