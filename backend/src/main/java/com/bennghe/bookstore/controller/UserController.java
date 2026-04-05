@@ -1,105 +1,84 @@
 package com.bennghe.bookstore.controller;
 
-  import com.bennghe.bookstore.dto.request.CreateUserRequest;
-  import com.bennghe.bookstore.dto.response.ApiResponse;
-  import com.bennghe.bookstore.dto.response.UserResponse;
-  import com.bennghe.bookstore.entity.Role;
-  import com.bennghe.bookstore.service.UserService;
-  import jakarta.validation.Valid;
-  import lombok.RequiredArgsConstructor;
-  import org.springframework.data.domain.Page;
-  import org.springframework.data.domain.Pageable;
-  import org.springframework.http.ResponseEntity;
-  import org.springframework.security.access.prepost.PreAuthorize;
-  import org.springframework.web.bind.annotation.*;
+import com.bennghe.bookstore.dto.request.UserRequest;
+import com.bennghe.bookstore.dto.response.ApiResponse;
+import com.bennghe.bookstore.dto.response.UserResponse;
+import com.bennghe.bookstore.service.UserService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-  import java.util.List;
+import java.util.List;
 
-  @RestController
-  @RequestMapping("/api/admin/users")
-  @RequiredArgsConstructor
-  public class UserController {
+/*
+ * Controller xử lý CRUD TÀI KHOẢN (Users)
+ *
+ * GET    /api/users          → Lấy danh sách tài khoản
+ * GET    /api/users/{id}     → Lấy 1 tài khoản
+ * POST   /api/users          → Tạo tài khoản mới
+ * PUT    /api/users/{id}     → Cập nhật tài khoản
+ * DELETE /api/users/{id}     → Xoá tài khoản (soft delete)
+ */
+@RestController
+@RequestMapping("/api/users")
+@RequiredArgsConstructor
+public class UserController {
 
-      private final UserService userService ;
+    private final UserService userService;
 
-      /**
-       * GET /api/admin/users
-       * Lấy danh sách user có phân trang
-       */
-      @GetMapping
-      @PreAuthorize("hasAuthority('USER_READ')")
-      public ResponseEntity<ApiResponse<Page<UserResponse>>> getAllUsers(Pageable pageable) {
-          Page<UserResponse> page = userService.getAllUsers(pageable);
-          return ResponseEntity.ok(ApiResponse.ok(page));
-      }
+    /*
+     * GET /api/users
+     * Lấy danh sách tất cả tài khoản
+     */
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers() {
+        List<UserResponse> users = userService.getAllUsers();
+        return ResponseEntity.ok(ApiResponse.success(users, "Lấy danh sách tài khoản thành công"));
+    }
 
-      /**
-       * GET /api/admin/users/:id
-       * Lấy thông tin 1 user
-       */
-      @GetMapping("/{id}")
-      @PreAuthorize("hasAuthority('USER_READ')")
-      public ResponseEntity<ApiResponse<UserResponse>> getById(@PathVariable Integer id) {
-          UserResponse user = userService.getById(id);
-          return ResponseEntity.ok(ApiResponse.ok(user));
-      }
+    /*
+     * GET /api/users/{id}
+     * Lấy thông tin 1 tài khoản
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> getUser(@PathVariable Integer id) {
+        UserResponse user = userService.getUserById(id);
+        return ResponseEntity.ok(ApiResponse.success(user, "Lấy thông tin tài khoản thành công"));
+    }
 
-      /**
-       * POST /api/admin/users
-       * Tạo user mới
-       */
-      @PostMapping
-      @PreAuthorize("hasAuthority('USER_CREATE')")
-      public ResponseEntity<ApiResponse<UserResponse>> createUser(@Valid @RequestBody CreateUserRequest request) {
-          UserResponse user = userService.createUser(request);
-          return ResponseEntity.ok(ApiResponse.ok("Tạo người dùng thành công", user));
-      }
+    /*
+     * POST /api/users
+     * Tạo tài khoản mới
+     */
+    @PostMapping
+    public ResponseEntity<ApiResponse<UserResponse>> createUser(
+            @Valid @RequestBody UserRequest request) {
 
-      /**
-       * PUT /api/admin/users/:id
-       * Cập nhật user
-       */
-      @PutMapping("/{id}")
-      @PreAuthorize("hasAuthority('USER_UPDATE')")
-      public ResponseEntity<ApiResponse<UserResponse>> updateUser(
-              @PathVariable Integer id,
-              @Valid @RequestBody CreateUserRequest request) {
-          UserResponse user = userService.updateUser(id, request);
-          return ResponseEntity.ok(ApiResponse.ok("Cập nhật thành công", user));
-      }
+        UserResponse user = userService.createUser(request);
+        return ResponseEntity.ok(ApiResponse.success(user, "Tạo tài khoản thành công"));
+    }
 
-      /**
-       * PATCH /api/admin/users/:id/toggle
-       * Bật/tắt trạng thái user
-       */
-      @PatchMapping("/{id}/toggle")
-      @PreAuthorize("hasAuthority('USER_UPDATE')")
-      public ResponseEntity<ApiResponse<UserResponse>> toggleActive(@PathVariable Integer id) {
-          UserResponse user = userService.toggleActive(id);
-          return ResponseEntity.ok(ApiResponse.ok(
-                  user.getIsActive() ? "Đã kích hoạt tài khoản" : "Đã vô hiệu hóa tài khoản",
-                  user
-          ));
-      }
+    /*
+     * PUT /api/users/{id}
+     * Cập nhật tài khoản
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> updateUser(
+            @PathVariable Integer id,
+            @Valid @RequestBody UserRequest request) {
 
-      /**
-       * DELETE /api/admin/users/:id
-       * Xóa user
-       */
-      @DeleteMapping("/{id}")
-      @PreAuthorize("hasAuthority('USER_DELETE')")
-      public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Integer id) {
-          userService.deleteUser(id);
-          return ResponseEntity.ok(ApiResponse.ok("Xóa người dùng thành công", null));
-      }
+        UserResponse user = userService.updateUser(id, request);
+        return ResponseEntity.ok(ApiResponse.success(user, "Cập nhật tài khoản thành công"));
+    }
 
-      /**
-       * GET /api/admin/users/roles
-       * Lấy danh sách vai trò (cho dropdown)
-       */
-      @GetMapping("/roles")
-      @PreAuthorize("hasAuthority('USER_READ')")
-      public ResponseEntity<ApiResponse<List<Role>>> getRoles() {
-          return ResponseEntity.ok(ApiResponse.ok(userService.getAllRoles()));
-      }
-  }
+    /*
+     * DELETE /api/users/{id}
+     * Xoá tài khoản (soft delete)
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Integer id) {
+        userService.deleteUser(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Xoá tài khoản thành công"));
+    }
+}

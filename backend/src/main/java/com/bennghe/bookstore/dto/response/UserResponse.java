@@ -1,9 +1,15 @@
 package com.bennghe.bookstore.dto.response;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/*
+ * DTO trả về thông tin tài khoản (không bao gồm password)
+ */
 @Data
 @Builder
 @NoArgsConstructor
@@ -16,4 +22,5 @@ public class UserResponse {
     private String roleName;
     private Boolean isActive;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

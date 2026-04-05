@@ -27,4 +27,9 @@ public class AppException extends RuntimeException {
     public static AppException forbidden(String message) {
         return new AppException(HttpStatus.FORBIDDEN, message);
     }
+
+    // Constructor mặc định → mã lỗi 400 Bad Request
+    public AppException(String message) {
+        this(HttpStatus.BAD_REQUEST, message);
+    }
 }

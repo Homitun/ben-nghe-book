@@ -3,77 +3,55 @@ package com.bennghe.bookstore.service;
 import com.bennghe.bookstore.dto.request.LoginRequest;
 import com.bennghe.bookstore.dto.response.AuthResponse;
 import com.bennghe.bookstore.entity.User;
+import com.bennghe.bookstore.exception.AppException;
 import com.bennghe.bookstore.repository.UserRepository;
-import com.bennghe.bookstore.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.stream.Collectors;
+import java.util.UUID;
 
+/*
+ * Service xử lý logic ĐĂNG NHẬP
+ * Quy trình:
+ *   1. Tìm user theo username trong DB
+ *   2. So sánh password người dùng nhập với password_hash trong DB
+ *   3. Nếu đúng → trả về thông tin user + token (giả lập)
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final AuthenticationManager authManager;
-    private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthResponse login(LoginRequest request) {
-        try {
-            Authentication authentication = authManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.getUsername(),
-                            request.getPassword()
-                    )
-            );
+        // Bước 1: Tìm user theo username
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new AppException("Tên đăng nhập không tồn tại"));
 
-            String token = jwtTokenProvider.generateToken(authentication);
-
-            User user = userRepository.findByUsername(request.getUsername())
-                    .orElseThrow();
-
-            return AuthResponse.builder()
-                    .userId(user.getId())
-                    .username(user.getUsername())
-                    .fullName(user.getFullName())
-                    .role(user.getRole().getName())
-                    .permissions(
-                            user.getRole().getPermissions().stream()
-                                    .map(p -> p.getName())
-                                    .collect(Collectors.toList())
-                    )
-                    .token(token)
-                    .build();
-
-        } catch (BadCredentialsException e) {
-            throw new RuntimeException("Sai tên đăng nhập hoặc mật khẩu");
-        } catch (DisabledException e) {
-            throw new RuntimeException("Tài khoản đã bị vô hiệu hóa");
-        } catch (AuthenticationException e) {
-            throw new RuntimeException("Xác thực thất bại: " + e.getMessage());
+        // Bước 2: Kiểm tra user có bị khoá không
+        if (!user.getIsActive()) {
+            throw new AppException("Tài khoản đã bị vô hiệu hoá");
         }
-    }
 
-    public AuthResponse getCurrentUser(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        // Bước 3: So sánh password
+        // BCrypt.matches(password nhập, password hash trong DB)
+        boolean match = passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
+        if (!match) {
+            throw new AppException("Mật khẩu không đúng");
+        }
 
+        // Bước 4: Tạo token giả lập (sau này thay bằng JWT thật)
+        String fakeToken = "fake-" + UUID.randomUUID().toString();
+
+        // Bước 5: Trả về thông tin user
         return AuthResponse.builder()
                 .userId(user.getId())
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .role(user.getRole().getName())
-                .permissions(
-                        user.getRole().getPermissions().stream()
-                                .map(p -> p.getName())
-                                .collect(Collectors.toList())
-                )
+                .token(fakeToken)
                 .build();
     }
 }
