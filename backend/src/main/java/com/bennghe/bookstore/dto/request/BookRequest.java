@@ -19,6 +19,8 @@ public class BookRequest {
 
     private Integer publisherId;
 
+    private String publisherName;
+
     private Integer publicationYear;
     private String description;
     private String warehouse;
