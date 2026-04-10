@@ -8,10 +8,15 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "haravan_sync_logs")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class HaravanSyncLog {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "sync_date")
@@ -37,12 +42,12 @@ public class HaravanSyncLog {
     private Integer recordsFailed = 0;
 
     @Column(length = 20)
-    private String status;  // SUCCESS | PARTIAL | FAILED
+    private String status;
 
     @Column(name = "error_details", columnDefinition = "NVARCHAR(MAX)")
     private String errorDetails;
 
     @CreationTimestamp
-    @Column(name = "sync_date", insertable = false, updatable = false)
+    @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 }

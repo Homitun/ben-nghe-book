@@ -1,11 +1,13 @@
 package com.bennghe.bookstore.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
     private boolean success;
@@ -13,14 +15,19 @@ public class ApiResponse<T> {
     private T data;
 
     public static <T> ApiResponse<T> ok(T data) {
-        return ApiResponse.<T>builder().success(true).data(data).build();
+        return new ApiResponse<>(true, null, data);
     }
 
     public static <T> ApiResponse<T> ok(String message, T data) {
-        return ApiResponse.<T>builder().success(true).message(message).data(data).build();
+        return new ApiResponse<>(true, message, data);
     }
 
     public static <T> ApiResponse<T> error(String message) {
-        return ApiResponse.<T>builder().success(false).message(message).build();
+        return new ApiResponse<>(false, message, null);
+    }
+
+    // Factory method dùng chung cho cả success lẫn error
+    public static <T> ApiResponse<T> success(T data, String message) {
+        return new ApiResponse<>(true, message, data);
     }
 }

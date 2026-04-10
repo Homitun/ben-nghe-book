@@ -4,6 +4,7 @@ spring:
     username: sa
     password: YourPassword123!
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    hikari.data-source-properties: { sendStringParametersAsUnicode: true }
 
   jpa:
     hibernate:
